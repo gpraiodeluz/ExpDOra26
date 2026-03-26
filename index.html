@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rebanhão VII</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      width:100%; height:100%;
+      overflow:hidden;
+      font-family:'Cormorant Garamond', serif;
+      background:#07070f;
+    }
+
+    /* =========================================
+       FUNDO ESTÁTICO — IMAGEM IDÊNTICA
+       (Cenas 3, 4, 5, 6)
+    ========================================= */
+    #landscape {
+      position:fixed; inset:0;
+      width:100%; height:100%;
+      z-index:0;
+      opacity:0;
+      transition: opacity 2s ease;
+      /* Define a imagem de fundo */
+      background-image: url('rebanhao.png');
+      /* Garante que a imagem cubra toda a tela */
+      background-size: cover;
+      /* Centraliza a imagem */
+      background-position: center;
+      /* Impede que a imagem se repita */
+      background-repeat: no-repeat;
+    }
+    #landscape.visible { opacity:1; }
+
+    /* =========================================
+       CANVAS DE ESTRELAS (cenas 1-2)
+    ========================================= */
+    #star-canvas {
+      position:fixed; inset:0;
+      width:100%; height:100%;
+      z-index:1;
+      opacity:1;
+      transition: opacity 1.8s ease;
+      pointer-events:none;
+    }
+    #star-canvas.gone { opacity:0; }
+
+    /* =========================================
+       OVERLAY — usos múltiplos
+    ========================================= */
+    /* overlay noite (cenas 1-2) */
+    #night-overlay {
+      position:fixed; inset:0;
+      background:#07070f;
+      z-index:2;
+      opacity:1;
+      transition: opacity 2s ease;
+      pointer-events:none;
+    }
+    #night-overlay.gone { opacity:0; }
+
+    /* overlay fosco para cena 6 (opcional, pode ser ajustado para a imagem) */
+    #frost-overlay {
+      position:fixed; inset:0;
+      background: rgba(4, 6, 20, 0.82);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index:3;
+      opacity:0;
+      transition: opacity 1.4s ease;
+      pointer-events:none;
+    }
+    #frost-overlay.visible { opacity:1; }
+
+    /* =========================================
+       CENAS
+    ========================================= */
+    .scene {
+      position:fixed; inset:0;
+      display:flex; flex-direction:column;
+      justify-content:center; align-items:center;
+      text-align:center; padding:44px 32px;
+      opacity:0; pointer-events:none;
+      transition: opacity 1.3s ease;
+      z-index:10;
+    }
+    .scene.active { opacity:1; pointer-events:auto; }
+
+    /* ── S1: suspense ── */
+    #s1 .question {
+      font-size: clamp(1.7rem,5.5vw,2.5rem);
+      font-weight:300; font-style:italic;
+      color:rgba(255,255,255,.82);
+      text-shadow: 0 0 60px rgba(200,200,255,.12);
+      max-width:420px; line-height:1.65;
+      animation: floatUp 1.8s ease both;
+    }
+    #s1 .dots { margin-top:32px; display:flex; gap:10px; }
+    #s1 .dots span {
+      width:6px; height:6px; border-radius:50%;
+      background:rgba(255,255,255,.28);
+      animation: blink 1.5s infinite;
+    }
+    #s1 .dots span:nth-child(2){animation-delay:.3s}
+    #s1 .dots span:nth-child(3){animation-delay:.6s}
+
+    /* ── S2: suspense 2 ── */
+    #s2 .promise {
+      font-size:clamp(1.5rem,5vw,2.2rem);
+      font-weight:300; font-style:italic;
+      color:rgba(255,255,255,.78);
+      max-width:420px; line-height:1.7;
+      animation: floatUp 1.8s ease both;
+    }
+    #s2 .spark {
+      margin-top:36px;
+      width:14px; height:14px; border-radius:50%;
+      background:radial-gradient(circle,#fff9c4,#ffd740);
+      box-shadow: 0 0 24px 8px rgba(255,215,0,.4);
+      animation: pulse 2.4s ease-in-out infinite, floatUp 1s .7s both;
+    }
+
+    /* ── S3: só paisagem (sem texto) ── */
+
+    /* ── S4: tema esperança ── */
+    #s4 {
+      justify-content: flex-start;
+      padding-top: clamp(30px, 8vh, 70px);
+    }
+    #s4 .pre {
+      font-size:clamp(2rem,3.5vw,1.5rem);
+      font-weight:300; letter-spacing:.05em;
+      color:rgba(255,255,255,.95);
+      text-shadow: 0 6px 16px rgb(0, 0, 0);
+      margin-bottom:2px;
+      animation: floatUp 1.1s ease both;
+    }
+    #s4 .esperanca {
+      font-family:'Dancing Script', cursive;
+      font-size:clamp(4.8rem,14vw,10rem); font-weight:700;
+      color:#fff;
+      text-shadow: 0 3px 30px rgba(255,200,0,.5), 0 2px 12px rgba(0,0,0,.3);
+      line-height:1;
+      animation: floatUp 1.1s .2s ease both;
+    }
+
+    /* ── S5: detalhes ── */
+    #s5 {
+      justify-content: flex-start;
+      padding-top: clamp(30px, 8vh, 70px);
+    }
+    #s5 .ev-title {
+      font-family:'Dancing Script', cursive;
+      font-size:clamp(3.8rem,10vw,5rem); font-weight:700;
+      color:#fff;
+      text-shadow: 0 3px 20px rgba(0, 0, 0, 0.596);
+      animation: floatUp 1s ease both;
+    }
+    #s5 .divider {
+      width:55px; height:1.5px;
+      background:rgba(255,255,255,.6);
+      margin:14px auto;
+      opacity:0; animation: fadeIn 1s .3s ease both;
+    }
+    #s5 .info {
+      font-size:clamp(2.05rem,3.8vw,1.5rem);
+      color:rgba(255,255,255,.93);
+      text-shadow: 0 10px 8px rgba(0, 0, 0, 0.719);
+      margin:7px 0;
+      animation: floatUp .9s ease both;
+    }
+    #s5 .info:nth-child(4){animation-delay:.2s}
+    #s5 .info:nth-child(5){animation-delay:.38s}
+
+    /* ── S6: CTA fosco ── */
+    #s6 {
+      gap: 0;
+    }
+    #s6 .open-label {
+      font-size:clamp(1.2rem,3vw,1.2rem); font-weight:400;
+      letter-spacing:.2em; text-transform:uppercase;
+      color:rgba(255,255,255,.6);
+      margin-bottom:8px;
+      animation: floatUp 1s ease both;
+    }
+    #s6 .cta-title {
+      font-family:'Dancing Script', cursive;
+      font-size:clamp(2.8rem,10vw,4.5rem); font-weight:700;
+      color:#fff;
+      text-shadow: 0 0 40px rgba(255,200,0,.25);
+      line-height:1.1;
+      animation: floatUp 1s .15s ease both;
+    }
+    #s6 .btn {
+      display:inline-block; margin-top:32px;
+      padding:18px 46px;
+      background:linear-gradient(135deg,#ffd740,#ffab00);
+      color:#1a1200;
+      font-family:'Cormorant Garamond', serif;
+      font-size:1.15rem; font-weight:700;
+      letter-spacing:.13em; text-transform:uppercase;
+      text-decoration:none; border-radius:60px;
+      box-shadow: 0 6px 35px rgba(255,180,0,.5), 0 2px 8px rgba(0,0,0,.25);
+      animation: floatUp 1s .35s ease both, btnGlow 2.5s 1.4s ease-in-out infinite;
+      transition: transform .2s, box-shadow .2s;
+    }
+    #s6 .btn:hover, #s6 .btn:active {
+      transform: scale(1.06) translateY(-3px);
+      box-shadow: 0 12px 55px rgba(255,210,0,.7);
+    }
+    #s6 .sub {
+      margin-top:20px;
+      font-size:clamp(1.2rem,2.8vw,1rem); font-style:italic;
+      color:rgba(255, 255, 255, 0.781);
+      animation: floatUp 1s .55s ease both;
+    }
+
+    /* ── PROGRESS ── */
+    #progress {
+      position:fixed; bottom:24px; left:50%;
+      transform:translateX(-50%);
+      display:flex; gap:10px; z-index:50;
+    }
+    .pdot {
+      width:8px; height:8px; border-radius:50%;
+      background:rgba(255,255,255,.25);
+      border:1.5px solid rgba(255,255,255,.4);
+      transition:background .4s, transform .3s; cursor:pointer;
+    }
+    .pdot.active { background:rgba(255,255,255,.9); transform:scale(1.35); }
+
+    #tap-hint {
+      position:fixed; bottom:50px; left:50%;
+      transform:translateX(-50%);
+      font-size:.78rem; letter-spacing:.14em; text-transform:uppercase;
+      color:rgba(255,255,255,.35);
+      animation:blink 2.5s infinite;
+      z-index:50; pointer-events:none;
+      transition:opacity .8s;
+    }
+
+    /* ── KEYFRAMES ── */
+    @keyframes floatUp {
+      from{opacity:0;transform:translateY(24px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+    @keyframes fadeIn { to{opacity:1} }
+    @keyframes blink { 0%,100%{opacity:.3} 50%{opacity:1} }
+    @keyframes pulse {
+      0%,100%{transform:scale(1);box-shadow:0 0 24px 8px rgba(255,215,0,.4)}
+      50%{transform:scale(1.2);box-shadow:0 0 40px 16px rgba(255,215,0,.65)}
+    }
+    @keyframes btnGlow {
+      0%,100%{box-shadow:0 6px 35px rgba(255,180,0,.5),0 2px 8px rgba(0,0,0,.25)}
+      50%{box-shadow:0 6px 60px rgba(255,215,0,.85),0 2px 8px rgba(0,0,0,.2)}
+    }
+  </style>
+</head>
+<body>
+
+<div id="landscape"></div>
+
+<canvas id="star-canvas"></canvas>
+<div id="night-overlay"></div>
+<div id="frost-overlay"></div>
+
+<section class="scene active" id="s1">
+  <p class="question">Você está pronto para algo que vai tocar o seu coração?</p>
+  <div class="dots"><span></span><span></span><span></span></div>
+</section>
+
+<section class="scene" id="s2">
+  <p class="promise">Algo que pode renovar a sua fé e te lembrar de onde vem a sua força...</p>
+  <div class="spark"></div>
+</section>
+
+<section class="scene" id="s3"></section>
+
+<section class="scene" id="s4">
+  <p class="pre">só em Ti possuo</p>
+  <h1 class="esperanca">esperança</h1>
+</section>
+
+<section class="scene" id="s5">
+  <h2 class="ev-title">Rebanhão VII</h2>
+  <div class="divider"></div>
+  <p class="info">🗓️ 08, 09 e 10 de maio</p>
+  <p class="info">📍 Seminário São Vicente Pallotti</p>
+</section>
+
+<section class="scene" id="s6">
+  <p class="open-label">Inscrições abertas</p>
+  <h2 class="cta-title">Garanta sua vaga!</h2>
+  <a href="https://forms.gle/iZyXXkEvYdKbjKPGA" target="_blank" class="btn">QUERO PARTICIPAR</a>
+  <p class="sub">08 • 09 • 10 de maio · Londrina</p>
+</section>
+
+<div id="progress">
+  <div class="pdot active" data-i="0"></div>
+  <div class="pdot" data-i="1"></div>
+  <div class="pdot" data-i="2"></div>
+  <div class="pdot" data-i="3"></div>
+  <div class="pdot" data-i="4"></div>
+  <div class="pdot" data-i="5"></div>
+</div>
+<p id="tap-hint">toque para avançar</p>
+
+<script>
+// ===== ESTRELAS =====
+const sCvs = document.getElementById('star-canvas');
+const sCtx = sCvs.getContext('2d');
+let sW, sH;
+const stars = Array.from({length:80}, () => ({
+  x: Math.random(), y: Math.random() * .8,
+  r: Math.random() * 1.3 + .3,
+  ph: Math.random() * Math.PI * 2,
+  sp: Math.random() * .5 + .25,
+}));
+function resizeStar() { sW = sCvs.width = innerWidth; sH = sCvs.height = innerHeight; }
+function drawStars(T) {
+  sCtx.clearRect(0,0,sW,sH);
+  stars.forEach(s => {
+    const a = .2 + .7 * (.5 + .5 * Math.sin(T * s.sp + s.ph));
+    sCtx.beginPath();
+    sCtx.arc(s.x*sW, s.y*sH, s.r, 0, Math.PI*2);
+    sCtx.fillStyle = `rgba(255,255,240,${a})`;
+    sCtx.fill();
+  });
+}
+
+// ===== LOOP =====
+let T = 0;
+function loop() {
+  T += .016;
+  drawStars(T);
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', resizeStar);
+resizeStar(); loop();
+
+// ===== CENAS =====
+const landscape    = document.getElementById('landscape');
+const nightOverlay = document.getElementById('night-overlay');
+const frostOverlay = document.getElementById('frost-overlay');
+const starCvs      = document.getElementById('star-canvas');
+const scenes = document.querySelectorAll('.scene');
+const dots   = document.querySelectorAll('.pdot');
+const hint   = document.getElementById('tap-hint');
+let cur = 0, timer, hintGone = false;
+
+function applyTheme(i) {
+  // Cenas 0-1: noite
+  if (i <= 1) {
+    nightOverlay.classList.remove('gone');
+    starCvs.classList.remove('gone');
+    landscape.classList.remove('visible');
+    frostOverlay.classList.remove('visible');
+  }
+  // Cenas 2-4: dia (paisagem)
+  else if (i <= 4) {
+    landscape.classList.add('visible');
+    nightOverlay.classList.add('gone');
+    starCvs.classList.add('gone');
+    frostOverlay.classList.remove('visible');
+  }
+  // Cena 5: fosco (paisagem coberta)
+  else {
+    landscape.classList.add('visible');
+    nightOverlay.classList.add('gone');
+    starCvs.classList.add('gone');
+    frostOverlay.classList.add('visible');
+  }
+}
+
+function goTo(i) {
+  if (i < 0 || i >= scenes.length) return;
+  scenes[cur].classList.remove('active'); dots[cur].classList.remove('active');
+  cur = i;
+  scenes[cur].classList.add('active'); dots[cur].classList.add('active');
+  applyTheme(cur);
+  if (!hintGone) { hint.style.opacity = '0'; hintGone = true; }
+  resetTimer();
+}
+
+function next() { if (cur < scenes.length - 1) goTo(cur + 1); }
+
+function resetTimer() {
+  clearInterval(timer);
+  const delay = cur === 2 ? 4500 : 3800;
+  if (cur < scenes.length - 1) timer = setInterval(next, delay);
+}
+
+dots.forEach(d => d.addEventListener('click', e => { e.stopPropagation(); goTo(+d.dataset.i); }));
+document.addEventListener('click', e => {
+  if (!e.target.closest('#progress') && !e.target.closest('a')) next();
+});
+
+let tx=0, ty=0;
+document.addEventListener('touchstart', e => { tx=e.touches[0].clientX; ty=e.touches[0].clientY; }, {passive:true});
+document.addEventListener('touchend', e => {
+  const dx = tx - e.changedTouches[0].clientX;
+  const dy = Math.abs(ty - e.changedTouches[0].clientY);
+  if (Math.abs(dx) > 40 && dy < 60) dx > 0 ? next() : goTo(cur-1);
+}, {passive:true});
+
+applyTheme(0);
+resetTimer();
+</script>
+</body>
+</html>
