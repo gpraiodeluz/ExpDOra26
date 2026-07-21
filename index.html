@@ -131,8 +131,8 @@
       animation: pulse 2s ease-in-out infinite, floatUp 1s .7s both;
     }
 
-    /* =========================================
-       S3: PÔSTER COM FOGO ESTILO "SILK/CHAMA ORGÂNICA"
+/* =========================================
+       S3: PÔSTER COM FOGO
     ========================================= */
     #s3 {
       justify-content:center;
@@ -159,6 +159,7 @@
       padding: 15px;
     }
 
+    /* Estilos padrão para telas MAIORES que 375x667 */
     #s3 .ostensorio-icon {
       position:absolute;
       top: 27%; left: -28%;
@@ -184,6 +185,24 @@
       filter: drop-shadow(3px 5px 0px rgba(0,0,0,0.15));
       animation: floatUp 1.3s .2s ease both, floating 3.5s ease-in-out infinite alternate;
       z-index: 5;
+    }
+
+/* =========================================
+       MEDIA QUERY: TELAS IGUAIS OU MENORES QUE 375x667
+    ========================================= */
+    @media screen and (max-width: 410px) and (max-height: 740px) {
+      #s3 .ostensorio-icon {
+        top: 21%;
+      }
+      #s3 .id-icon {
+        position: absolute;
+        top: 15%;
+        left: 5%;
+      }
+      #s3 .lampada-icon {
+        bottom: 2%;
+        right: -20%;
+      }
     }
 
     /* CONTANEIR DA CHAMA ORGÂNICA (Estilo da Foto) */
